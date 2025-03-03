@@ -1,0 +1,32 @@
+[project]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "doc"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+pip-install = { cmd = [ "pip", "install", "-r", "requirements.txt" ] }
+generate-raster-drivers = { cmd = [
+    "python",
+    "source/build_driver_summary.py",
+    "source/drivers/raster",
+    "raster_driver_summary",
+    "source/drivers/raster/driver_summary.rst",
+] }
+generate-vector-drivers = { cmd = [
+    "python",
+    "source/build_driver_summary.py",
+    "source/drivers/vector",
+    "vector_driver_summary",
+    "source/drivers/vector/driver_summary.rst",
+] }
+generate-driver-rst = { depends-on = ["generate-raster-drivers", "generate-vector-drivers"] }
+build = { cmd = [ "sphinx-build", "-M", "html", "source", "build", "--keep-going", "-j", "auto", "-W"], depends-on = ["generate-driver-rst", "pip-install", "build-xml", "build-html-extra"] }
+build-xml = { cmd = [ "doxygen", "Doxyfile_xml" ], depends-on = ["pip-install"] }
+build-html-extra = { cmd = [ "doxygen", "Doxyfile_html_extra" ], depends-on = ["pip-install"] }
+
+[dependencies]
+doxygen = ">=1.13.2,<2"
+gdal = ">=3.10.2,<4"
+pip = ">=25.0.1,<26"

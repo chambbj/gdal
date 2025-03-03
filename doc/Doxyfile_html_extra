@@ -1,0 +1,2 @@
+HTML_OUTPUT = build/html_extra/doxygen
+INLINE_INHERITED_MEMB = YES
