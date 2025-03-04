@@ -6,7 +6,7 @@ platforms = ["win-64"]
 version = "0.1.0"
 
 [tasks]
-pip-install = { cmd = [ "pip", "install", "-r", "requirements.txt" ] }
+pip-install = { cmd = ["pip", "install", "-r", "requirements.txt"] }
 generate-raster-drivers = { cmd = [
     "python",
     "source/build_driver_summary.py",
@@ -21,10 +21,56 @@ generate-vector-drivers = { cmd = [
     "vector_driver_summary",
     "source/drivers/vector/driver_summary.rst",
 ] }
-generate-driver-rst = { depends-on = ["generate-raster-drivers", "generate-vector-drivers"] }
-build = { cmd = [ "sphinx-build", "-M", "html", "source", "build", "--keep-going", "-j", "auto", "-W"], depends-on = ["generate-driver-rst", "pip-install", "build-xml", "build-html-extra"] }
-build-xml = { cmd = [ "doxygen", "Doxyfile_xml" ], depends-on = ["pip-install"] }
-build-html-extra = { cmd = [ "doxygen", "Doxyfile_html_extra" ], depends-on = ["pip-install"] }
+generate-driver-rst = { depends-on = [
+    "generate-raster-drivers",
+    "generate-vector-drivers",
+] }
+build-xml = { cmd = [
+    "mkdir",
+    "-p",
+    "build/xml",
+    "&&",
+    "doxygen",
+    "Doxyfile_xml",
+], depends-on = [
+    "pip-install",
+] }
+build-html-extra = { cmd = [
+    "mkdir",
+    "-p",
+    "build/html_extra",
+    "&&",
+    "doxygen",
+    "Doxyfile_html_extra",
+], depends-on = [
+    "pip-install",
+] }
+replace-ndash = { cmd = [
+    "powershell",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-NoProfile",
+    "-Command",
+    "\"Get-ChildItem 'build\\xml\\*.xml' | ForEach-Object { (Get-Content $_.FullName) -replace '<ndash/>', '--' | Set-Content $_.FullName }\"",
+], depends-on = [
+    "build-xml",
+    "build-html-extra",
+] }
+build = { cmd = [
+    "sphinx-build",
+    "-M",
+    "html",
+    "source",
+    "build",
+    "--keep-going",
+    "-j",
+    "auto",
+    "-W",
+], depends-on = [
+    "generate-driver-rst",
+    "replace-ndash",
+] }
+
 
 [dependencies]
 doxygen = ">=1.13.2,<2"
